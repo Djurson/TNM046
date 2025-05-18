@@ -34,8 +34,17 @@
 
 #include "Utilities.hpp"
 #include <vector>
+#include <array>
 #include "Shader.hpp"
 
+
+std::array<float, 16> mat4mult(const std::array<float, 16>& m2, const std::array<float, 16>& m1);
+std::array<float, 16> mat4rotx(float angle);
+std::array<float, 16> mat4roty(float angle);
+std::array<float, 16> mat4rotz(float angle);
+std::array<float, 16> mat4scale(float scale);
+std::array<float, 16> mat4translate(float x, float y, float z);
+void mat4print(const std::array<float, 16>& m);
 
 GLuint createVertexBuffer(int location, int dimensions, const std::vector<float>& vertices) {
     GLuint bufferID;
@@ -50,6 +59,7 @@ GLuint createVertexBuffer(int location, int dimensions, const std::vector<float>
     glVertexAttribPointer(location, dimensions, GL_FLOAT, GL_FALSE, 0, nullptr);
     // Enable the attribute in the currently bound VAO
     glEnableVertexAttribArray(location);
+
     return bufferID;
 }
 
@@ -69,20 +79,113 @@ GLuint createIndexBuffer(const std::vector<unsigned int>& indices) {
  * main(int argc, char* argv[]) - the standard C++ entry point for the program
  */
 int main(int, char*[]) {
-    const std::vector<GLfloat> vertexArrayData = {
-        -1.0f, -1.0f, 0.0f,  // First vertex, xyz
-        1.0f,  -1.0f, 0.0f,  // Second vertex, xyz
-        0.0f,  1.0f,  0.0f   // Third vertex, xyz
-    };
-    const std::vector<GLuint> indexArrayData = {0, 1, 2};
-
-    const std::vector<GLfloat> colorArrayData = {
-        1.0f, 0.0f, 0.0f,  // Red
-        0.0f, 1.0f, 0.0f,  // Green
-        0.0f, 0.0f, 1.0f,  // Blue
-    };
 
     Shader myShader;
+
+    // Color array
+    const std::vector<GLfloat> colorArrayData = {
+        0.0f, 1.0f, 0.0f,  // Green 0
+        0.5f, 0.0f, 1.0f,  // Purple 1
+        1.0f, 0.0f, 0.0f,  // Red 2
+        0.0f, 1.0f, 0.0f,  // Green 3
+        0.5f, 0.0f, 1.0f,  // Purple 4
+        1.0f, 0.5f, 0.0f,  // Orange 5
+        0.0f, 1.0f, 0.0f,  // Green 6
+        1.0f, 1.0f, 0.0f,  // Yellow 7
+        1.0f, 0.5f, 0.0f,  // Orange 8
+        0.0f, 1.0f, 0.0f,  // Green 9
+        1.0f, 1.0f, 0.0f,  // Yellow 10
+        1.0f, 0.0f, 0.0f,  // Red 11
+        0.0f, 0.0f, 1.0f,  // Blue 12
+        0.5f, 0.0f, 1.0f,  // Purple 13
+        1.0f, 0.0f, 0.0f,  // Red 14
+        0.0f, 0.0f, 1.0f,  // Blue 15
+        0.5f, 0.0f, 1.0f,  // Purple 16
+        1.0f, 0.5f, 0.0f,  // Orange 17
+        0.0f, 0.0f, 1.0f,  // Blue 18
+        1.0f, 1.0f, 0.0f,  // Yellow 19
+        1.0f, 0.5f, 0.0f,  // Orange 20
+        0.0f, 0.0f, 1.0f,  // Blue 21
+        1.0f, 1.0f, 0.0f,  // Yellow 22
+        1.0f, 0.0f, 0.0f,  // Red 23
+    };
+
+    // Cube vertex points
+    const std::vector<GLfloat> vertexArrayData = {
+        -1.0f, -1.0f, -1.0f,  // Vertex 0
+        -1.0f, -1.0f, -1.0f,  // Vertex 1
+        -1.0f, -1.0f, -1.0f,  // Vertex 2
+
+        -1.0f, -1.0f, 1.0f,  // Vertex 3
+        -1.0f, -1.0f, 1.0f,  // Vertex 4
+        -1.0f, -1.0f, 1.0f,  // Vertex 5
+
+        -1.0f, 1.0f,  1.0f,  // Vertex 6
+        -1.0f, 1.0f,  1.0f,  // Vertex 7
+        -1.0f, 1.0f,  1.0f,  // Vertex 8
+
+        -1.0f, 1.0f,  -1.0f,  // Vertex 9
+        -1.0f, 1.0f,  -1.0f,  // Vertex 10
+        -1.0f, 1.0f,  -1.0f,  // Vertex 11
+
+        1.0f,  -1.0f, -1.0f,  // Vertex 12
+        1.0f,  -1.0f, -1.0f,  // Vertex 13
+        1.0f,  -1.0f, -1.0f,  // Vertex 14
+
+        1.0f,  -1.0f, 1.0f,  // Vertex 15
+        1.0f,  -1.0f, 1.0f,  // Vertex 16
+        1.0f,  -1.0f, 1.0f,  // Vertex 17
+
+        1.0f,  1.0f,  1.0f,  // Vertex 18
+        1.0f,  1.0f,  1.0f,  // Vertex 19
+        1.0f,  1.0f,  1.0f,  // vertex 20
+
+        1.0f,  1.0f,  -1.0f,  // Vertex 21
+        1.0f,  1.0f,  -1.0f,  // Vertex 22
+        1.0f,  1.0f,  -1.0f,  // Vertex 23
+    };
+
+    // tringle table for cube
+    const std::vector<GLuint> indexArrayData = {
+        0,  3,  9,   // t0
+        3,  6,  9,   // t1
+        14, 2,  23,  // t2
+        2,  11, 23,  // t3
+        15, 12, 18,  // t4
+        12, 21, 18,  // t5
+        5,  17, 8,   // t6
+        17, 20, 8,   // t7
+        10, 7,  22,  // t8
+        7,  19, 22,  // t9
+        4,  1,  16,  // t10
+        1,  13, 16   // t11
+    };
+
+    // 4X4 Matrix for matrix multiplication
+    std::array<GLfloat, 16> matT = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+                                    0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+
+    // Rotation around the Z-Axis
+    std::array<GLfloat, 16> matT_Z = {cos(45), -sin(45), 0.0f, 0.0f, sin(45), cos(45), 0.0f, 0.0f,
+                                      0.0f,    0.0f,     1.0f, 0.0f, 0.0f,    0.0f,    0.0f, 1.0f};
+
+    // Rotation around the X-Axis
+    std::array<GLfloat, 16> matT_X = {1.0f,      0.0f, 0.0f, 0.0f,     0.0f,     cos(180),
+                                      -sin(180), 0.0f, 0.0f, sin(180), cos(180), 0.0f,
+                                      0.0f,      0.0f, 0.0f, 1.0f};
+
+    // Rotation around the Y-Axis
+    std::array<GLfloat, 16> matT_Y = {cos(180),  0.0f, sin(180), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+                                      -sin(180), 0.0f, cos(180), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+
+    // Translation, larger
+    std::array<GLfloat, 16> matT_S = {1.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f,
+                                      0.0f, 0.0f, 1.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+
+    // Multiplying two matrixes
+    std::array<float, 16> matMultTest = mat4mult(matT, mat4rotx(M_PI));
+    mat4print(matMultTest);
+
     int width, height;
 
     // Initialise GLFW
@@ -125,16 +228,6 @@ int main(int, char*[]) {
               << "\nGL version:      " << glGetString(GL_VERSION)
               << "\nDesktop size:    " << vidmode->width << " x " << vidmode->height << "\n";
 
-    #pragma region Defenitioner som inte används?
-    /*
-    // Get window size. It may start out different from the requested size and
-    // will change if the user resizes the window
-     glfwGetWindowSize(window, &width, &height);
-    // Set viewport. This is the pixel rectangle we want to draw into
-     glViewport(0, 0, width, height);  // The entire window
-    */
-    #pragma endregion
-
     // Generate 1 Vertex array object, put the resulting identifier in vertexArrayID
     GLuint vertexArrayID = 0;
     glGenVertexArrays(1, &vertexArrayID);
@@ -147,6 +240,12 @@ int main(int, char*[]) {
     GLuint indexBufferID = createIndexBuffer(indexArrayData);
 
     glfwSwapInterval(0);  // Do not wait for screen refresh between frames
+
+    // Do this before the rendering loop
+    GLint locationTime = glGetUniformLocation(myShader.id(), "time");
+    if (locationTime == -1) {  // If the variable is not found, -1 is returned
+        std::cout << "Unable to locate variable 'time' in shader!\n";
+    }
 
     myShader.createShader("../shaders/vertex.glsl", "../shaders/fragment.glsl");
 
@@ -168,6 +267,24 @@ int main(int, char*[]) {
         // The index buffer is part of the VAO state and is bound with it.
         glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
 
+        float time =
+            static_cast<float>(glfwGetTime());  // Number of seconds since the program was started
+        glUseProgram(myShader.id());            // Activate the shader to set its variables
+        glUniform1f(locationTime, time);        // Copy the value to the shader program
+
+        // Creating the variables for the matrix multiplication
+        std::array<GLfloat, 16> V = mat4rotx(time * (M_PI) / 550);
+        std::array<GLfloat, 16> R1 = mat4roty((time * 0.5));
+        std::array<GLfloat, 16> T = mat4translate(0, 0, 0.5);
+        std::array<GLfloat, 16> R2 = mat4roty(time * (M_PI) / 50);
+
+        // Sending the matrix mult to the shaders
+        std::array<float, 16> matTransformations = mat4mult(mat4mult(mat4mult(V, R1), T), R2);
+        std::array<GLfloat, 16> matRotY = mat4roty(time);
+        GLint locationMatTRAN = glGetUniformLocation(myShader.id(), "MAT_TRAN");
+        glUniformMatrix4fv(locationMatTRAN, 1, GL_FALSE,
+                           matTransformations.data());  // Copy the value
+
         // Visa FPS
         util::displayFPS(window);
 
@@ -188,12 +305,80 @@ int main(int, char*[]) {
 
     // release the vertex and index buffers as well as the vertex array
     glDeleteVertexArrays(1, &vertexArrayID);
-    glDeleteBuffers(1, &vertexBufferID);
     glDeleteBuffers(1, &indexBufferID);
-
+    glDeleteBuffers(1, &vertexBufferID);
 
     // Close the OpenGL window and terminate GLFW
     glfwDestroyWindow(window);
     glfwTerminate();
 }
 
+std::array<float, 16> mat4mult(const std::array<float, 16>& m2, const std::array<float, 16>& m1) {
+    std::array<float, 16> result;
+
+    // Your code goes here: compute and set each element of result, e.g.:
+    //
+    result[0] = m1[0] * m2[0] + m1[1] * m2[4] + m1[2] * m2[8] + m1[3] * m2[12];
+    result[1] = m1[0] * m2[1] + m1[1] * m2[5] + m1[2] * m2[9] + m1[3] * m2[13];
+    result[2] = m1[0] * m2[2] + m1[1] * m2[6] + m1[2] * m2[10] + m1[3] * m2[14];
+    result[3] = m1[0] * m2[3] + m1[1] * m2[7] + m1[2] * m2[11] + m1[3] * m2[15];
+
+    result[4] = m1[4] * m2[0] + m1[5] * m2[4] + m1[6] * m2[8] + m1[7] * m2[12];
+    result[5] = m1[4] * m2[1] + m1[5] * m2[5] + m1[6] * m2[9] + m1[7] * m2[13];
+    result[6] = m1[4] * m2[2] + m1[5] * m2[6] + m1[6] * m2[10] + m1[7] * m2[14];
+    result[7] = m1[4] * m2[3] + m1[5] * m2[7] + m1[6] * m2[11] + m1[7] * m2[15];
+
+    result[8] = m1[8] * m2[0] + m1[9] * m2[4] + m1[10] * m2[8] + m1[11] * m2[12];
+    result[9] = m1[8] * m2[1] + m1[9] * m2[5] + m1[10] * m2[9] + m1[11] * m2[13];
+    result[10] = m1[8] * m2[2] + m1[9] * m2[6] + m1[10] * m2[10] + m1[11] * m2[14];
+    result[11] = m1[8] * m2[3] + m1[9] * m2[7] + m1[10] * m2[11] + m1[11] * m2[15];
+
+    result[12] = m1[12] * m2[0] + m1[13] * m2[4] + m1[14] * m2[8] + m1[15] * m2[12];
+    result[13] = m1[12] * m2[1] + m1[13] * m2[5] + m1[14] * m2[9] + m1[15] * m2[13];
+    result[14] = m1[12] * m2[2] + m1[13] * m2[6] + m1[14] * m2[10] + m1[15] * m2[14];
+    result[15] = m1[12] * m2[3] + m1[13] * m2[7] + m1[14] * m2[11] + m1[15] * m2[15];
+    //
+    // etc. for the remaining 15 elements.
+    return result;
+}
+
+std::array<float, 16> mat4rotx(float angle) {
+    std::array<GLfloat, 16> matT_X = {1.0f,       0.0f, 0.0f, 0.0f,        0.0f,       cos(angle),
+                                      sin(angle), 0.0f, 0.0f, -sin(angle), cos(angle), 0.0f,
+                                      0.0f,       0.0f, 0.0f, 1.0f};
+    return matT_X;
+}
+
+std::array<float, 16> mat4roty(float angle) {
+    std::array<float, 16> matT_Y = {cos(angle), 0.0f, -sin(angle), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+                                    sin(angle), 0.0f, cos(angle),  0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+    return matT_Y;
+}
+
+std::array<float, 16> mat4rotz(float angle) {
+    std::array<GLfloat, 16> matT_Z = {cos(angle), sin(angle), 0.0f, 0.0f, -sin(angle), cos(angle),
+                                      0.0f,       0.0f,       0.0f, 0.0f, 1.0f,        0.0f,
+                                      0.0f,       0.0f,       0.0f, 1.0f};
+    return matT_Z;
+}
+
+std::array<float, 16> mat4scale(float scale) {
+    std::array<GLfloat, 16> matT_S = {scale, 0.0f, 0.0f,  0.0f, 0.0f, scale, 0.0f, 0.0f,
+                                      0.0f,  0.0f, scale, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f};
+    return matT_S;
+}
+
+std::array<float, 16> mat4translate(float x, float y, float z) {
+    std::array<GLfloat, 16> matT_T = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+                                      0.0f, 0.0f, 1.0f, 0.0f, x,    y,    z,    1.0f};
+    return matT_T;
+}
+
+void mat4print(const std::array<float, 16>& m) {
+    printf("Matrix:\n");
+    printf("%6.2f %6.2f %6.2f %6.2f\n", m[0], m[4], m[8], m[12]);
+    printf("%6.2f %6.2f %6.2f %6.2f\n", m[1], m[5], m[9], m[13]);
+    printf("%6.2f %6.2f %6.2f %6.2f\n", m[2], m[6], m[10], m[14]);
+    printf("%6.2f %6.2f %6.2f %6.2f\n", m[3], m[7], m[11], m[15]);
+    printf("\n");
+}
