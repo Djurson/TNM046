@@ -222,11 +222,7 @@ int main(int, char*[]) {
         return -1;
     }
 
-    // Show some useful information on the GL context
-    std::cout << "GL vendor:       " << glGetString(GL_VENDOR)
-              << "\nGL renderer:     " << glGetString(GL_RENDERER)
-              << "\nGL version:      " << glGetString(GL_VERSION)
-              << "\nDesktop size:    " << vidmode->width << " x " << vidmode->height << "\n";
+    myShader.createShader("../shaders/vertex.glsl", "../shaders/fragment.glsl");
 
     // Generate 1 Vertex array object, put the resulting identifier in vertexArrayID
     GLuint vertexArrayID = 0;
@@ -241,21 +237,32 @@ int main(int, char*[]) {
 
     glfwSwapInterval(0);  // Do not wait for screen refresh between frames
 
+
+    // Show some useful information on the GL context
+    std::cout << "GL vendor:       " << glGetString(GL_VENDOR)
+              << "\nGL renderer:     " << glGetString(GL_RENDERER)
+              << "\nGL version:      " << glGetString(GL_VERSION)
+              << "\nDesktop size:    " << vidmode->width << " x " << vidmode->height << "\n";
+
     // Do this before the rendering loop
     GLint locationTime = glGetUniformLocation(myShader.id(), "time");
     if (locationTime == -1) {  // If the variable is not found, -1 is returned
         std::cout << "Unable to locate variable 'time' in shader!\n";
     }
 
-    myShader.createShader("../shaders/vertex.glsl", "../shaders/fragment.glsl");
+    glEnable(GL_CULL_FACE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {
         // Set the clear color to a dark gray (RGBA)
         glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
+
         // Clear the color and depth buffers for drawing
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Visa FPS
+        util::displayFPS(window);
         /* ---- Rendering code should go here ---- */
         glUseProgram(myShader.id());
 
@@ -265,7 +272,7 @@ int main(int, char*[]) {
         // When the last argument of glDrawElements is nullptr, it means
         // "use the previously bound index buffer". (This is not obvious.)
         // The index buffer is part of the VAO state and is bound with it.
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, 32, GL_UNSIGNED_INT, nullptr);
 
         float time =
             static_cast<float>(glfwGetTime());  // Number of seconds since the program was started
@@ -285,8 +292,6 @@ int main(int, char*[]) {
         glUniformMatrix4fv(locationMatTRAN, 1, GL_FALSE,
                            matTransformations.data());  // Copy the value
 
-        // Visa FPS
-        util::displayFPS(window);
 
         // Swap buffers, display the image and prepare for next frame
         glfwSwapBuffers(window);
