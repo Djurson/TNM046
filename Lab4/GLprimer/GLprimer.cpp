@@ -128,39 +128,31 @@ int main(int, char*[]) {
         // --- Add this to the rendering loop, right before the call to glBindVertexArray()
         glUseProgram(myShader.id());
 
-        // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr); // was 3
-        box.render();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // GL_FILL
-        glCullFace(GL_FRONT);
+        // Update uniform variables
+        float time = static_cast<float>(glfwGetTime());
+        glUniform1f(locationTime, time);
 
-        // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr); // was 3
-        box.render();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  // LINE
-        glCullFace(GL_BACK);                        // GL_FRONT
-
-        // Do this in the rendering loop to update the uniform variable "time"
-        float time = static_cast<float>(glfwGetTime());  // Number of seconds since the program was started
-        glUseProgram(myShader.id());            // Activate the shader to set its variables
-        glUniform1f(locationTime, time);        // Copy the value to the shader program
-
+        // Update transformation matrices
         std::array<GLfloat, 16> matT = mat4identity();
-        GLint locationT = glGetUniformLocation(myShader.id(), "T");
-        glUseProgram(myShader.id());  // Activate the shader to set its variables
-        glUniformMatrix4fv(locationT, 1, GL_FALSE, matT.data());  // Copy the value
+        glUniformMatrix4fv(glGetUniformLocation(myShader.id(), "T"), 1, GL_FALSE, matT.data());
 
-        // std::array<GLfloat, 16> matP = mat4mult(mat4roty(time), mat4rotx(time));
-        std::array<GLfloat, 16> matP = mat4perspective((M_PI / 2), 1.0f, 0.1f, 100.0f);
-        GLint locationP = glGetUniformLocation(myShader.id(), "P");
-        // glUseProgram(myShader.id());  // Activate the shader to set its variables
-        glUniformMatrix4fv(locationP, 1, GL_FALSE, matP.data());  // Copy the value
+        std::array<GLfloat, 16> matP = mat4perspective(M_PI / 2, 1.0f, 0.1f, 100.0f);
+        glUniformMatrix4fv(glGetUniformLocation(myShader.id(), "P"), 1, GL_FALSE, matP.data());
 
         std::array<GLfloat, 16> matRx = mat4mult(mat4rotz(time), mat4roty(time));
         std::array<GLfloat, 16> matvT = mat4translate(0.0f, 0.0f, -3.0f);
         std::array<GLfloat, 16> matMV = mat4mult(matvT, matRx);
+        glUniformMatrix4fv(glGetUniformLocation(myShader.id(), "MV"), 1, GL_FALSE, matMV.data());
 
-        GLint locationMV = glGetUniformLocation(myShader.id(), "MV");
-        // glUseProgram(myShader.id());  // Activate the shader to set its variables
-        glUniformMatrix4fv(locationMV, 1, GL_FALSE, matMV.data());  // Copy the value
+        // First pass: wireframe of front faces
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glCullFace(GL_FRONT);
+        box.render();
+
+        // Second pass: filled back faces
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glCullFace(GL_BACK);
+        box.render();
 
         // --- Put this in the rendering loop
         // Draw the triangle
