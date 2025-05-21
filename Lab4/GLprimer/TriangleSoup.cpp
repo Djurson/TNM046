@@ -131,43 +131,38 @@ void TriangleSoup::createBox(float xsize, float ysize, float zsize) {
     // The data array contains 8 floats per vertex:
     // coordinate xyz, normal xyz, texcoords st
     const GLfloat vertex_array_data[] = {
-        // side 1 höger normal (1.0f, 0.0f, 0.0f) done
-        // side 2 top normal (0.0f, 1.0f, 0.0f) done
-        // side 3 fram normal (0.0f, 0.0f, 1.0f) done
-        // side 4 ner normal (0.0f, -1.0f, 0.0f) done
-        // side 5 bak normal (0.0f, 0.0f, -1.0f) done
-        // side 6 vänster normal (-1.0f, 0.0f, 0.0f) done
-        xsize,  -ysize, -zsize, 1.0f,   0.0f,   0.0f,   0.0f,   0.0f,  // 0.1     0   taken   side 1 p4 done
-        xsize,  -ysize, -zsize, 0.0f,   -1.0f,  0.0f,   0.0f,   0.0f,  // 0.2     1   taken   side 4 p4 done
-        xsize,  -ysize, -zsize, 0.0f,   0.0f,   -1.0f,  0.0f,   0.0f,  // 0.3      2   taken   side 5 p4 done
+    //  x-pos   y-pos   z-pos       normal-x    normal-y    normal-z    s       t
+        xsize,  -ysize, -zsize,     1.0f,       0.0f,       0.0f,       0.0f,   0.0f,
+        xsize,  -ysize, -zsize,     0.0f,       -1.0f,      0.0f,       0.0f,   0.0f,
+        xsize,  -ysize, -zsize,     0.0f,       0.0f,       -1.0f,      0.0f,   0.0f,
 
-        xsize,  ysize,  -zsize, 1.0f,   0.0f,   0.0f,   0.0f,   0.0f,  // 1.1      3   taken   side 1 p7 done
-        xsize,  ysize,  -zsize, 0.0f,   1.0f,   0.0f,   0.0f,   0.0f,  // 1.2    4   taken   side 2 p7 done
-        xsize,  ysize,  -zsize, 0.0f,   0.0f,   -1.0f,  0.0f,   0.0f,  // 1.3    5   taken   side 5 p7 done
+        xsize,  ysize,  -zsize,     1.0f,       0.0f,       0.0f,       0.0f,   0.0f,
+        xsize,  ysize,  -zsize,     0.0f,       1.0f,       0.0f,       0.0f,   0.0f,
+        xsize,  ysize,  -zsize,     0.0f,       0.0f,       -1.0f,      0.0f,   0.0f,
 
-        xsize,  ysize,  zsize,  1.0f,   0.0f,   0.0f,   0.0f,   0.0f,  // 2.1       6   taken   side 1 p6 done
-        xsize,  ysize,  zsize,  0.0f,   1.0f,   0.0f,   0.0f,   0.0f,  // 2.2    7   taken   side 2 p6 done
-        xsize,  ysize,  zsize,  0.0f,   0.0f,   1.0f,   0.0f,   0.0f,  // 2.3    8   taken   side 3 p6 done
+        xsize,  ysize,  zsize,      1.0f,       0.0f,       0.0f,       0.0f,   0.0f,
+        xsize,  ysize,  zsize,      0.0f,       1.0f,       0.0f,       0.0f,   0.0f,
+        xsize,  ysize,  zsize,      0.0f,       0.0f,       1.0f,       0.0f,   0.0f,
 
-        xsize,  -ysize, zsize,  1.0f,   0.0f,   0.0f,   0.0f,   0.0f,  // 3.1     9   taken   side 1 p5 done
-        xsize,  -ysize, zsize,  0.0f,   0.0f,   1.0f,   0.0f,   0.0f,  // 3.2    10  taken   side 3 p5 done
-        xsize,  -ysize, zsize,  0.0f,   -1.0f,  0.0f,   0.0f,   0.0f,  // 3.3    11  taken   side 4 p5 done
+        xsize,  -ysize, zsize,      1.0f,       0.0f,       0.0f,       0.0f,   0.0f,
+        xsize,  -ysize, zsize,      0.0f,       0.0f,       1.0f,       0.0f,   0.0f,
+        xsize,  -ysize, zsize,      0.0f,       -1.0f,      0.0f,       0.0f,   0.0f,
 
-        -xsize, -ysize, -zsize, 0.0f,   -1.0f,  0.0f,   0.0f,   0.0f,  // 4.1  12  taken   side 4 p0 done
-        -xsize, -ysize, -zsize, 0.0f,   0.0f,   -1.0f,  0.0f,   0.0f,  // 4.2    13  taken   side 5 p0 done
-        -xsize, -ysize, -zsize, -1.0f,  0.0f,   0.0f,   0.0f,   0.0f,  // 4.3    14  taken   side 6 p0  done
+        -xsize, -ysize, -zsize,     0.0f,       -1.0f,      0.0f,       0.0f,   0.0f,
+        -xsize, -ysize, -zsize,     0.0f,       0.0f,       -1.0f,      0.0f,   0.0f,
+        -xsize, -ysize, -zsize,     -1.0f,      0.0f,       0.0f,       0.0f,   0.0f,
 
-        -xsize, -ysize, zsize,  0.0f,   0.0f,   1.0f,   0.0f,   0.0f,  // 5.1    15  taken   side 3 p1 done
-        -xsize, -ysize, zsize,  0.0f,   -1.0f,  0.0f,   0.0f,   0.0f,  // 5.2     16  taken   side 4 p1 done
-        -xsize, -ysize, zsize,  -1.0f,  0.0f,   0.0f,   0.0f,   0.0f,  // 5.3    17  taken   side 6 p1 done
+        -xsize, -ysize, zsize,      0.0f,       0.0f,       1.0f,       0.0f,   0.0f,
+        -xsize, -ysize, zsize,      0.0f,       -1.0f,      0.0f,       0.0f,   0.0f,
+        -xsize, -ysize, zsize,      -1.0f,      0.0f,       0.0f,       0.0f,   0.0f,
 
-        -xsize, ysize,  -zsize, 0.0f,   1.0f,   0.0f,   0.0f,   0.0f,  // 6.1     18  taken   side 2 p3 done
-        -xsize, ysize,  -zsize, 0.0f,   0.0f,   -1.0f,  0.0f,   0.0f,  // 6.2    19  taken   side 5 p3 done
-        -xsize, ysize,  -zsize, -1.0f,  0.0f,   0.0f,   0.0f,   0.0f,  // 6.3    20  taken   side 6 p3 done
+        -xsize, ysize,  -zsize,     0.0f,       1.0f,       0.0f,       0.0f,   0.0f,
+        -xsize, ysize,  -zsize,     0.0f,       0.0f,       -1.0f,      0.0f,   0.0f,
+        -xsize, ysize,  -zsize,     -1.0f,      0.0f,       0.0f,       0.0f,   0.0f,
 
-        -xsize, ysize,  zsize,  0.0f,   1.0f,   0.0f,   0.0f,   0.0f,  // 7.1       21  taken   side 2 p2 done
-        -xsize, ysize,  zsize,  0.0f,   0.0f,   1.0f,   0.0f,   0.0f,  // 7.2    22  taken   side 3 p2 done
-        -xsize, ysize,  zsize,  -1.0f,  0.0f,   0.0f,   0.0f,   0.0f,  // 7.3    23  taken   side 6 p2 done
+        -xsize, ysize,  zsize,      0.0f,       1.0f,       0.0f,       0.0f,   0.0f,
+        -xsize, ysize,  zsize,      0.0f,       0.0f,       1.0f,       0.0f,   0.0f,
+        -xsize, ysize,  zsize,      -1.0f,      0.0f,       0.0f,       0.0f,   0.0f,
 
     };
     const GLuint index_array_data[] = {
