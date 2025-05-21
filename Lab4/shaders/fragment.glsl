@@ -7,16 +7,14 @@ out vec4 finalcolor;
 
 in vec3 interpolatedNormal;
 in vec2 st;
-in vec3 Lin;
 
 void main() {
-	//vec3 L = normalize(mat3(T) * vec3(0.0f, 0.0f, 1.0f));
-	//vec3 L = vec3(T * vec4(0.0f, 0.0f, 1.0f, 1.0f));
-	vec3 L = Lin;
+	/*
+	vec3 L = normalize(mat3(T) * vec3(0.0f, 0.0f, 1.0f));
 	vec3 V = vec3(0.0f,0.0f,1.0f);
 	vec3 N = interpolatedNormal;
 
-	vec3 colorRGB = vec3(0.75f, 0.5f, 0.0f);
+	vec3 colorRGB = vec3(0.7f, 0.0f, 0.7f);
 	vec3 colorGreyScale = vec3(1.0f, 1.0f, 1.0f);
 
 	float n = 100;
@@ -26,7 +24,6 @@ void main() {
 	vec3 kd = 1.0f * colorRGB;
 	vec3 Id = 0.8f * colorGreyScale;
 	vec3 ks = 1.0f * colorGreyScale;
-	//vec3 ks = 1.0f * vec3(0.0f, 1.0f, 0.0f);
 	vec3 Is = 0.9f * colorGreyScale;
 
 	// This assumes that N, L and V are normalized.
@@ -41,4 +38,8 @@ void main() {
 	}
 	vec3 shadedcolor = Ia * ka + Id * kd * dotNL + Is * ks * pow(dotRV, n);
 	finalcolor = vec4(shadedcolor, 1.0);
+	//guuuuuuuuuh?!
+	*/
+
+	finalcolor = vec4(interpolatedNormal * 0.5 + 0.5, 1);
 }

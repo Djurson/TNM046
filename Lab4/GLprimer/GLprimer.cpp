@@ -45,7 +45,9 @@ std::array<float, 16> mat4roty(float angle);
 std::array<float, 16> mat4rotz(float angle);
 std::array<float, 16> mat4scale(float scale);
 std::array<float, 16> mat4translate(float x, float y, float z);
+std::array<float, 16> mat4identity();
 void mat4print(const std::array<float, 16>& m);
+std::array<float, 16> mat4perspective(float vfov, float aspect, float znear, float zfar);
 
 GLuint createVertexBuffer(int location, int dimensions, const std::vector<float>& vertices) {
     GLuint bufferID;
@@ -169,7 +171,7 @@ int main(int, char*[]) {
 
     TriangleSoup myshape;
 
-    myshape.createSphere(1.0f, 20);
+    myshape.createBox(0.2f, 0.2f, 1.0f);
 
     glEnable(GL_CULL_FACE);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -185,26 +187,43 @@ int main(int, char*[]) {
         // Visa FPS
         util::displayFPS(window);
         /* ---- Rendering code should go here ---- */
+        // --- Add this to the rendering loop, right before the call to glBindVertexArray()
         glUseProgram(myShader.id());
 
-        float time = static_cast<float>(glfwGetTime());  // Number of seconds since the program was started
+        // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr); // was 3
+        myshape.render();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // GL_FILL
+        glCullFace(GL_FRONT);
+
+        // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr); // was 3
+        myshape.render();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  // LINE
+        glCullFace(GL_BACK);                        // GL_FRONT
+
+        // Do this in the rendering loop to update the uniform variable "time"
+        float time =
+            static_cast<float>(glfwGetTime());  // Number of seconds since the program was started
         glUseProgram(myShader.id());            // Activate the shader to set its variables
         glUniform1f(locationTime, time);        // Copy the value to the shader program
 
-        // Creating the variables for the matrix multiplication
-        std::array<GLfloat, 16> R1 = mat4roty((time * 3));
-
-        // Sending the matrix mult to the shaders
-        std::array<float, 16> matTransformation = R1;
-        std::array<GLfloat, 16> matRotY = mat4roty(time);
-        GLint locationMatTRAN = glGetUniformLocation(myShader.id(), "MAT_TRAN");
-        glUniformMatrix4fv(locationMatTRAN, 1, GL_FALSE,
-                           matTransformation.data());  // Copy the value
-
-        std::array<GLfloat, 16> matT = matTransformation;
+        std::array<GLfloat, 16> matT = mat4identity();
         GLint locationT = glGetUniformLocation(myShader.id(), "T");
         glUseProgram(myShader.id());  // Activate the shader to set its variables
         glUniformMatrix4fv(locationT, 1, GL_FALSE, matT.data());  // Copy the value
+
+        // std::array<GLfloat, 16> matP = mat4mult(mat4roty(time), mat4rotx(time));
+        std::array<GLfloat, 16> matP = mat4perspective((M_PI / 2), 1.0f, 0.1f, 100.0f);
+        GLint locationP = glGetUniformLocation(myShader.id(), "P");
+        // glUseProgram(myShader.id());  // Activate the shader to set its variables
+        glUniformMatrix4fv(locationP, 1, GL_FALSE, matP.data());  // Copy the value
+
+        std::array<GLfloat, 16> matRx = mat4mult(mat4rotx(time), mat4roty(time));
+        std::array<GLfloat, 16> matvT = mat4translate(0.0f, 0.0f, -3.0f);
+        std::array<GLfloat, 16> matMV = mat4mult(matvT, matRx);
+
+        GLint locationMV = glGetUniformLocation(myShader.id(), "MV");
+        // glUseProgram(myShader.id());  // Activate the shader to set its variables
+        glUniformMatrix4fv(locationMV, 1, GL_FALSE, matMV.data());  // Copy the value
 
         myshape.render();
 
@@ -299,5 +318,29 @@ void mat4print(const std::array<float, 16>& m) {
 std::array<float, 16> mat4identity() {
     std::array<float, 16> temp = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
                                   0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+    return temp;
+}
+
+std::array<float, 16> mat4perspective(float vfov, float aspect, float znear, float zfar) {
+    // float f = cos(vfov / 2) / sin(vfov / 2);
+
+    float f = 1 / tan(vfov / 2);
+
+    std::array<float, 16> temp = {f / aspect,
+                                  0.0f, 0.0f,
+                                  0.0f,
+                                  0.0f,
+                                  f,
+                                  0.0f,
+                                  0.0f,
+                                  0.0f,
+                                  0.0f,
+                                  -(zfar + znear) / (zfar - znear),
+                                  -1.0f,
+                                  0.0f,
+                                  0.0f,
+                                  -(2 * zfar * znear) / (zfar - znear),
+                                  0.0f};
+
     return temp;
 }
