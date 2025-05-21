@@ -47,66 +47,11 @@ std::array<float, 16> mat4scale(float scale);
 std::array<float, 16> mat4translate(float x, float y, float z);
 void mat4print(const std::array<float, 16>& m);
 
-GLuint createVertexBuffer(int location, int dimensions, const std::vector<float>& vertices) {
-    GLuint bufferID;
-    // Generate buffer, activate it and copy the data
-    glGenBuffers(1, &bufferID);
-    glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-    // Tell OpenGL how the data is stored in our buffer
-    // Attribute location (must match layout(location=#) statement in shader)
-    // Number of dimensions (3 -> vec3 in the shader, 2-> vec2 in the shader),
-    // type GL_FLOAT, not normalized, stride 0, start at element 0
-    glVertexAttribPointer(location, dimensions, GL_FLOAT, GL_FALSE, 0, nullptr);
-    // Enable the attribute in the currently bound VAO
-    glEnableVertexAttribArray(location);
-
-    return bufferID;
-}
-
-GLuint createIndexBuffer(const std::vector<unsigned int>& indices) {
-    GLuint bufferID;
-    // Generate buffer, activate it and copy the data
-    glGenBuffers(1, &bufferID);
-    // Activate (bind) the index buffer and copy data to it.
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferID);
-    // Present our vertex indices to OpenGL
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(),
-                 GL_STATIC_DRAW);
-    return bufferID;
-}
-
 /*
  * main(int argc, char* argv[]) - the standard C++ entry point for the program
  */
 int main(int, char*[]) {
 
-    Shader myShader;
-
-    // 4X4 Matrix for matrix multiplication
-    std::array<GLfloat, 16> matT = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-                                    0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-
-    // Rotation around the Z-Axis
-    std::array<GLfloat, 16> matT_Z = {cos(45), -sin(45), 0.0f, 0.0f, sin(45), cos(45), 0.0f, 0.0f,
-                                      0.0f,    0.0f,     1.0f, 0.0f, 0.0f,    0.0f,    0.0f, 1.0f};
-
-    // Rotation around the X-Axis
-    std::array<GLfloat, 16> matT_X = {1.0f,      0.0f, 0.0f, 0.0f,     0.0f,     cos(180),
-                                      -sin(180), 0.0f, 0.0f, sin(180), cos(180), 0.0f,
-                                      0.0f,      0.0f, 0.0f, 1.0f};
-
-    // Rotation around the Y-Axis
-    std::array<GLfloat, 16> matT_Y = {cos(180),  0.0f, sin(180), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-                                      -sin(180), 0.0f, cos(180), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-
-    // Translation, larger
-    std::array<GLfloat, 16> matT_S = {1.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f,
-                                      0.0f, 0.0f, 1.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-
-    // Multiplying two matrixes
-    std::array<float, 16> matMultTest = mat4mult(matT, mat4rotx(M_PI));
-    mat4print(matMultTest);
 
     int width, height;
 
@@ -144,13 +89,8 @@ int main(int, char*[]) {
         return -1;
     }
 
+    Shader myShader;
     myShader.createShader("../shaders/vertex.glsl", "../shaders/fragment.glsl");
-
-    // Generate 1 Vertex array object, put the resulting identifier in vertexArrayID
-    GLuint vertexArrayID = 0;
-    glGenVertexArrays(1, &vertexArrayID);
-    // Activate the vertex array object
-    glBindVertexArray(vertexArrayID);
 
     glfwSwapInterval(0);  // Do not wait for screen refresh between frames
 
@@ -167,9 +107,9 @@ int main(int, char*[]) {
         std::cout << "Unable to locate variable 'time' in shader!\n";
     }
 
-    TriangleSoup myshape;
+    TriangleSoup sphere;
 
-    myshape.createSphere(1.0f, 20);
+    sphere.createSphere(1.0f, 20);
 
     glEnable(GL_CULL_FACE);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -206,7 +146,7 @@ int main(int, char*[]) {
         glUseProgram(myShader.id());  // Activate the shader to set its variables
         glUniformMatrix4fv(locationT, 1, GL_FALSE, matT.data());  // Copy the value
 
-        myshape.render();
+        sphere.render();
 
 
         // Swap buffers, display the image and prepare for next frame
@@ -256,34 +196,42 @@ std::array<float, 16> mat4mult(const std::array<float, 16>& m2, const std::array
 }
 
 std::array<float, 16> mat4rotx(float angle) {
-    std::array<GLfloat, 16> matT_X = {1.0f,       0.0f, 0.0f, 0.0f,        0.0f,       cos(angle),
-                                      sin(angle), 0.0f, 0.0f, -sin(angle), cos(angle), 0.0f,
-                                      0.0f,       0.0f, 0.0f, 1.0f};
+    std::array<GLfloat, 16> matT_X = {1.0f,     0.0f,           0.0f,           0.0f,        
+                                      0.0f,     cos(angle),     sin(angle),     0.0f, 
+                                      0.0f,     -sin(angle),    cos(angle),     0.0f,
+                                      0.0f,     0.0f,           0.0f,           1.0f};
     return matT_X;
 }
 
 std::array<float, 16> mat4roty(float angle) {
-    std::array<float, 16> matT_Y = {cos(angle), 0.0f, -sin(angle), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-                                    sin(angle), 0.0f, cos(angle),  0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+    std::array<float, 16> matT_Y = {cos(angle), 0.0f,   -sin(angle),    0.0f, 
+                                    0.0f,       1.0f,   0.0f,           0.0f,
+                                    sin(angle), 0.0f,   cos(angle),     0.0f, 
+                                    0.0f,       0.0f,   0.0f,           1.0f};
     return matT_Y;
 }
 
 std::array<float, 16> mat4rotz(float angle) {
-    std::array<GLfloat, 16> matT_Z = {cos(angle), sin(angle), 0.0f, 0.0f, -sin(angle), cos(angle),
-                                      0.0f,       0.0f,       0.0f, 0.0f, 1.0f,        0.0f,
-                                      0.0f,       0.0f,       0.0f, 1.0f};
+    std::array<GLfloat, 16> matT_Z = {cos(angle),   sin(angle),     0.0f,   0.0f, 
+                                      -sin(angle),  cos(angle),     0.0f,   0.0f,           
+                                      0.0f,         0.0f,           1.0f,   0.0f,
+                                      0.0f,         0.0f,           0.0f,   1.0f};
     return matT_Z;
 }
 
 std::array<float, 16> mat4scale(float scale) {
-    std::array<GLfloat, 16> matT_S = {scale, 0.0f, 0.0f,  0.0f, 0.0f, scale, 0.0f, 0.0f,
-                                      0.0f,  0.0f, scale, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f};
+    std::array<GLfloat, 16> matT_S = {scale, 0.0f, 0.0f,  0.0f, 
+                                      0.0f, scale, 0.0f, 0.0f,
+                                      0.0f,  0.0f, scale, 0.0f, 
+                                      0.0f, 0.0f,  0.0f, 1.0f};
     return matT_S;
 }
 
 std::array<float, 16> mat4translate(float x, float y, float z) {
-    std::array<GLfloat, 16> matT_T = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-                                      0.0f, 0.0f, 1.0f, 0.0f, x,    y,    z,    1.0f};
+    std::array<GLfloat, 16> matT_T = {1.0f, 0.0f, 0.0f, 0.0f, 
+                                      0.0f, 1.0f, 0.0f, 0.0f,
+                                      0.0f, 0.0f, 1.0f, 0.0f, 
+                                      x,    y,    z,    1.0f};
     return matT_T;
 }
 
@@ -297,7 +245,9 @@ void mat4print(const std::array<float, 16>& m) {
 }
 
 std::array<float, 16> mat4identity() {
-    std::array<float, 16> temp = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-                                  0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+    std::array<float, 16> temp = {1.0f, 0.0f, 0.0f, 0.0f, 
+                                  0.0f, 1.0f, 0.0f, 0.0f,
+                                  0.0f, 0.0f, 1.0f, 0.0f, 
+                                  0.0f, 0.0f, 0.0f, 1.0f};
     return temp;
 }

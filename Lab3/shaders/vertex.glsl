@@ -16,6 +16,6 @@ void main() {
 	interpolatedNormal = normalize(transformedNormal);
 	Lin = normalize(mat3(T) * vec3(0.0f, 0.0f, 1.0f));
 
-	gl_Position = vec4(Position, 1.0); // Special, required output
-	st = TexCoord; // Will also be interpolated across the triangle
+	gl_Position = vec4(Position, 1.0);
+	st = TexCoord;
 }
