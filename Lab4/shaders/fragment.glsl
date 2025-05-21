@@ -1,6 +1,5 @@
 #version 330 core
 
-//uniform float time;
 uniform mat4 T;
 
 out vec4 finalcolor;

@@ -14,9 +14,9 @@ out vec3 interpolatedNormal;
 out vec2 st;
 
 void main() {
-	vec3 transformedNormal = mat3(MV) * Normal;
+	vec3 transformedNormal = Normal;
 	interpolatedNormal = normalize(transformedNormal);
 
-	gl_Position = P * MV *  vec4(Position, 1.0); // Special, required output // MV * 
-	st = TexCoord; // Will also be interpolated across the triangle
+	gl_Position = P * MV *  vec4(Position, 1.0);
+	st = TexCoord;
 }
