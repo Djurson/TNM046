@@ -82,39 +82,10 @@ GLuint createIndexBuffer(const std::vector<unsigned int>& indices) {
  * main(int argc, char* argv[]) - the standard C++ entry point for the program
  */
 int main(int, char*[]) {
-
-    Shader myShader;
-
-    // 4X4 Matrix for matrix multiplication
-    std::array<GLfloat, 16> matT = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-                                    0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-
-    // Rotation around the Z-Axis
-    std::array<GLfloat, 16> matT_Z = {cos(45), -sin(45), 0.0f, 0.0f, sin(45), cos(45), 0.0f, 0.0f,
-                                      0.0f,    0.0f,     1.0f, 0.0f, 0.0f,    0.0f,    0.0f, 1.0f};
-
-    // Rotation around the X-Axis
-    std::array<GLfloat, 16> matT_X = {1.0f,      0.0f, 0.0f, 0.0f,     0.0f,     cos(180),
-                                      -sin(180), 0.0f, 0.0f, sin(180), cos(180), 0.0f,
-                                      0.0f,      0.0f, 0.0f, 1.0f};
-
-    // Rotation around the Y-Axis
-    std::array<GLfloat, 16> matT_Y = {cos(180),  0.0f, sin(180), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-                                      -sin(180), 0.0f, cos(180), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-
-    // Translation, larger
-    std::array<GLfloat, 16> matT_S = {1.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f,
-                                      0.0f, 0.0f, 1.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-
-    // Multiplying two matrixes
-    std::array<float, 16> matMultTest = mat4mult(matT, mat4rotx(M_PI));
-    mat4print(matMultTest);
-
     int width, height;
 
     // Initialise GLFW
     glfwInit();
-
     const GLFWvidmode* vidmode;  // GLFW struct to hold information about the display
     // Determine the desktop size
     vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
@@ -146,13 +117,6 @@ int main(int, char*[]) {
         return -1;
     }
 
-    myShader.createShader("../shaders/vertex.glsl", "../shaders/fragment.glsl");
-
-    // Generate 1 Vertex array object, put the resulting identifier in vertexArrayID
-    GLuint vertexArrayID = 0;
-    glGenVertexArrays(1, &vertexArrayID);
-    // Activate the vertex array object
-    glBindVertexArray(vertexArrayID);
 
     glfwSwapInterval(0);  // Do not wait for screen refresh between frames
 
@@ -163,11 +127,18 @@ int main(int, char*[]) {
               << "\nGL version:      " << glGetString(GL_VERSION)
               << "\nDesktop size:    " << vidmode->width << " x " << vidmode->height << "\n";
 
+    Shader myShader;
+    myShader.createShader("../shaders/vertex.glsl", "../shaders/fragment.glsl");
+
     // Do this before the rendering loop
     GLint locationTime = glGetUniformLocation(myShader.id(), "time");
     if (locationTime == -1) {  // If the variable is not found, -1 is returned
         std::cout << "Unable to locate variable 'time' in shader!\n";
     }
+    GLint locationT = glGetUniformLocation(myShader.id(), "T");
+    GLint locationP = glGetUniformLocation(myShader.id(), "P");
+    GLint locationMV = glGetUniformLocation(myShader.id(), "MV");
+
 
     TriangleSoup myshape;
 
@@ -188,45 +159,27 @@ int main(int, char*[]) {
         util::displayFPS(window);
         /* ---- Rendering code should go here ---- */
         // --- Add this to the rendering loop, right before the call to glBindVertexArray()
-        glUseProgram(myShader.id());
 
-        // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr); // was 3
+        float time = static_cast<float>(glfwGetTime());
+
+        std::array<GLfloat, 16> T = mat4identity();
+        std::array<GLfloat, 16> P = mat4perspective((M_PI / 2), 1.0f, 0.1f, 100.0f);
+        std::array<GLfloat, 16> MV =
+            mat4mult(mat4translate(0.0f, 0.0f, -3.0f), mat4mult(mat4rotx(time), mat4roty(time)));
+
+        glUseProgram(myShader.id());
+        glUniform1f(locationTime, time);
+        glUniformMatrix4fv(locationT, 1, GL_FALSE, T.data()); 
+        glUniformMatrix4fv(locationP, 1, GL_FALSE, P.data()); 
+        glUniformMatrix4fv(locationMV, 1, GL_FALSE, MV.data()); 
+
         myshape.render();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // GL_FILL
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glCullFace(GL_FRONT);
 
-        // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr); // was 3
         myshape.render();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  // LINE
-        glCullFace(GL_BACK);                        // GL_FRONT
-
-        // Do this in the rendering loop to update the uniform variable "time"
-        float time =
-            static_cast<float>(glfwGetTime());  // Number of seconds since the program was started
-        glUseProgram(myShader.id());            // Activate the shader to set its variables
-        glUniform1f(locationTime, time);        // Copy the value to the shader program
-
-        std::array<GLfloat, 16> matT = mat4identity();
-        GLint locationT = glGetUniformLocation(myShader.id(), "T");
-        glUseProgram(myShader.id());  // Activate the shader to set its variables
-        glUniformMatrix4fv(locationT, 1, GL_FALSE, matT.data());  // Copy the value
-
-        // std::array<GLfloat, 16> matP = mat4mult(mat4roty(time), mat4rotx(time));
-        std::array<GLfloat, 16> matP = mat4perspective((M_PI / 2), 1.0f, 0.1f, 100.0f);
-        GLint locationP = glGetUniformLocation(myShader.id(), "P");
-        // glUseProgram(myShader.id());  // Activate the shader to set its variables
-        glUniformMatrix4fv(locationP, 1, GL_FALSE, matP.data());  // Copy the value
-
-        std::array<GLfloat, 16> matRx = mat4mult(mat4rotx(time), mat4roty(time));
-        std::array<GLfloat, 16> matvT = mat4translate(0.0f, 0.0f, -3.0f);
-        std::array<GLfloat, 16> matMV = mat4mult(matvT, matRx);
-
-        GLint locationMV = glGetUniformLocation(myShader.id(), "MV");
-        // glUseProgram(myShader.id());  // Activate the shader to set its variables
-        glUniformMatrix4fv(locationMV, 1, GL_FALSE, matMV.data());  // Copy the value
-
-        myshape.render();
-
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); 
+        glCullFace(GL_BACK);                      
 
         // Swap buffers, display the image and prepare for next frame
         glfwSwapBuffers(window);
@@ -326,21 +279,10 @@ std::array<float, 16> mat4perspective(float vfov, float aspect, float znear, flo
 
     float f = 1 / tan(vfov / 2);
 
-    std::array<float, 16> temp = {f / aspect,
-                                  0.0f, 0.0f,
-                                  0.0f,
-                                  0.0f,
-                                  f,
-                                  0.0f,
-                                  0.0f,
-                                  0.0f,
-                                  0.0f,
-                                  -(zfar + znear) / (zfar - znear),
-                                  -1.0f,
-                                  0.0f,
-                                  0.0f,
-                                  -(2 * zfar * znear) / (zfar - znear),
-                                  0.0f};
+    std::array<float, 16> temp = {f / aspect, 0.0f, 0.0f, 0.0f,
+                                  0.0f, f, 0.0f, 0.0f,
+                                  0.0f, 0.0f, -(zfar + znear) / (zfar - znear), -1.0f,
+                                  0.0f, 0.0f, -(2 * zfar * znear) / (zfar - znear), 0.0f};
 
     return temp;
 }
