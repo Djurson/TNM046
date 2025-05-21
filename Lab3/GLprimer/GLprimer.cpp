@@ -36,6 +36,7 @@
 #include <vector>
 #include <array>
 #include "Shader.hpp"
+#include "TriangleSoup.hpp"
 
 
 std::array<float, 16> mat4mult(const std::array<float, 16>& m2, const std::array<float, 16>& m1);
@@ -81,85 +82,6 @@ GLuint createIndexBuffer(const std::vector<unsigned int>& indices) {
 int main(int, char*[]) {
 
     Shader myShader;
-
-    // Color array
-    const std::vector<GLfloat> colorArrayData = {
-        0.0f, 1.0f, 0.0f,  // Green 0
-        0.5f, 0.0f, 1.0f,  // Purple 1
-        1.0f, 0.0f, 0.0f,  // Red 2
-        0.0f, 1.0f, 0.0f,  // Green 3
-        0.5f, 0.0f, 1.0f,  // Purple 4
-        1.0f, 0.5f, 0.0f,  // Orange 5
-        0.0f, 1.0f, 0.0f,  // Green 6
-        1.0f, 1.0f, 0.0f,  // Yellow 7
-        1.0f, 0.5f, 0.0f,  // Orange 8
-        0.0f, 1.0f, 0.0f,  // Green 9
-        1.0f, 1.0f, 0.0f,  // Yellow 10
-        1.0f, 0.0f, 0.0f,  // Red 11
-        0.0f, 0.0f, 1.0f,  // Blue 12
-        0.5f, 0.0f, 1.0f,  // Purple 13
-        1.0f, 0.0f, 0.0f,  // Red 14
-        0.0f, 0.0f, 1.0f,  // Blue 15
-        0.5f, 0.0f, 1.0f,  // Purple 16
-        1.0f, 0.5f, 0.0f,  // Orange 17
-        0.0f, 0.0f, 1.0f,  // Blue 18
-        1.0f, 1.0f, 0.0f,  // Yellow 19
-        1.0f, 0.5f, 0.0f,  // Orange 20
-        0.0f, 0.0f, 1.0f,  // Blue 21
-        1.0f, 1.0f, 0.0f,  // Yellow 22
-        1.0f, 0.0f, 0.0f,  // Red 23
-    };
-
-    // Cube vertex points
-    const std::vector<GLfloat> vertexArrayData = {
-        -1.0f, -1.0f, -1.0f,  // Vertex 0
-        -1.0f, -1.0f, -1.0f,  // Vertex 1
-        -1.0f, -1.0f, -1.0f,  // Vertex 2
-
-        -1.0f, -1.0f, 1.0f,  // Vertex 3
-        -1.0f, -1.0f, 1.0f,  // Vertex 4
-        -1.0f, -1.0f, 1.0f,  // Vertex 5
-
-        -1.0f, 1.0f,  1.0f,  // Vertex 6
-        -1.0f, 1.0f,  1.0f,  // Vertex 7
-        -1.0f, 1.0f,  1.0f,  // Vertex 8
-
-        -1.0f, 1.0f,  -1.0f,  // Vertex 9
-        -1.0f, 1.0f,  -1.0f,  // Vertex 10
-        -1.0f, 1.0f,  -1.0f,  // Vertex 11
-
-        1.0f,  -1.0f, -1.0f,  // Vertex 12
-        1.0f,  -1.0f, -1.0f,  // Vertex 13
-        1.0f,  -1.0f, -1.0f,  // Vertex 14
-
-        1.0f,  -1.0f, 1.0f,  // Vertex 15
-        1.0f,  -1.0f, 1.0f,  // Vertex 16
-        1.0f,  -1.0f, 1.0f,  // Vertex 17
-
-        1.0f,  1.0f,  1.0f,  // Vertex 18
-        1.0f,  1.0f,  1.0f,  // Vertex 19
-        1.0f,  1.0f,  1.0f,  // vertex 20
-
-        1.0f,  1.0f,  -1.0f,  // Vertex 21
-        1.0f,  1.0f,  -1.0f,  // Vertex 22
-        1.0f,  1.0f,  -1.0f,  // Vertex 23
-    };
-
-    // tringle table for cube
-    const std::vector<GLuint> indexArrayData = {
-        0,  3,  9,   // t0
-        3,  6,  9,   // t1
-        14, 2,  23,  // t2
-        2,  11, 23,  // t3
-        15, 12, 18,  // t4
-        12, 21, 18,  // t5
-        5,  17, 8,   // t6
-        17, 20, 8,   // t7
-        10, 7,  22,  // t8
-        7,  19, 22,  // t9
-        4,  1,  16,  // t10
-        1,  13, 16   // t11
-    };
 
     // 4X4 Matrix for matrix multiplication
     std::array<GLfloat, 16> matT = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
@@ -230,11 +152,6 @@ int main(int, char*[]) {
     // Activate the vertex array object
     glBindVertexArray(vertexArrayID);
 
-    GLuint vertexBufferID = createVertexBuffer(0, 3, vertexArrayData);
-    GLuint colorBufferID = createVertexBuffer(1, 3, colorArrayData);
-    // Create the index buffer object (the list of triangles).
-    GLuint indexBufferID = createIndexBuffer(indexArrayData);
-
     glfwSwapInterval(0);  // Do not wait for screen refresh between frames
 
 
@@ -249,6 +166,10 @@ int main(int, char*[]) {
     if (locationTime == -1) {  // If the variable is not found, -1 is returned
         std::cout << "Unable to locate variable 'time' in shader!\n";
     }
+
+    TriangleSoup myshape;
+
+    myshape.createSphere(1.0f, 20);
 
     glEnable(GL_CULL_FACE);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -266,31 +187,26 @@ int main(int, char*[]) {
         /* ---- Rendering code should go here ---- */
         glUseProgram(myShader.id());
 
-        // Activate the vertex array object we want to draw (we may have several)
-        glBindVertexArray(vertexArrayID);
-        // Draw our triangle with 3 vertices.
-        // When the last argument of glDrawElements is nullptr, it means
-        // "use the previously bound index buffer". (This is not obvious.)
-        // The index buffer is part of the VAO state and is bound with it.
-        glDrawElements(GL_TRIANGLES, 32, GL_UNSIGNED_INT, nullptr);
-
-        float time =
-            static_cast<float>(glfwGetTime());  // Number of seconds since the program was started
+        float time = static_cast<float>(glfwGetTime());  // Number of seconds since the program was started
         glUseProgram(myShader.id());            // Activate the shader to set its variables
         glUniform1f(locationTime, time);        // Copy the value to the shader program
 
         // Creating the variables for the matrix multiplication
-        std::array<GLfloat, 16> V = mat4rotx(time * (M_PI) / 550);
-        std::array<GLfloat, 16> R1 = mat4roty((time * 0.5));
-        std::array<GLfloat, 16> T = mat4translate(0, 0, 0.5);
-        std::array<GLfloat, 16> R2 = mat4roty(time * (M_PI) / 50);
+        std::array<GLfloat, 16> R1 = mat4roty((time * 5));
 
         // Sending the matrix mult to the shaders
-        std::array<float, 16> matTransformations = mat4mult(mat4mult(mat4mult(V, R1), T), R2);
+        std::array<float, 16> matTransformation = R1;
         std::array<GLfloat, 16> matRotY = mat4roty(time);
         GLint locationMatTRAN = glGetUniformLocation(myShader.id(), "MAT_TRAN");
         glUniformMatrix4fv(locationMatTRAN, 1, GL_FALSE,
-                           matTransformations.data());  // Copy the value
+                           matTransformation.data());  // Copy the value
+
+        std::array<GLfloat, 16> matT = matTransformation;
+        GLint locationT = glGetUniformLocation(myShader.id(), "T");
+        glUseProgram(myShader.id());  // Activate the shader to set its variables
+        glUniformMatrix4fv(locationT, 1, GL_FALSE, matT.data());  // Copy the value
+
+        myshape.render();
 
 
         // Swap buffers, display the image and prepare for next frame
@@ -304,14 +220,6 @@ int main(int, char*[]) {
             glfwSetWindowShouldClose(window, GL_TRUE);
         }
     }
-
-    // släpp färg buffer
-    glDeleteBuffers(1, &colorBufferID);
-
-    // release the vertex and index buffers as well as the vertex array
-    glDeleteVertexArrays(1, &vertexArrayID);
-    glDeleteBuffers(1, &indexBufferID);
-    glDeleteBuffers(1, &vertexBufferID);
 
     // Close the OpenGL window and terminate GLFW
     glfwDestroyWindow(window);
