@@ -137,10 +137,10 @@ int main(int, char*[]) {
         glUniformMatrix4fv(glGetUniformLocation(myShader.id(), "T"), 1, GL_FALSE, matT.data());
 
         // View translation
-        std::array<GLfloat, 16> matP = mat4perspective(M_PI / 4, 1.0f, 0.1f, 100.0f);
+        std::array<GLfloat, 16> matP = mat4perspective(M_PI / 3, 1.0f, 0.1f, 100.0f);
         glUniformMatrix4fv(glGetUniformLocation(myShader.id(), "P"), 1, GL_FALSE, matP.data());
 
-        std::array<GLfloat, 16> matRx = mat4mult(mat4rotz(time), mat4roty(time));
+        std::array<GLfloat, 16> matRx = mat4mult(mat4rotx(time), mat4roty(time / 4));
         std::array<GLfloat, 16> matvT = mat4translate(0.0f, 0.0f, -3.0f);
         std::array<GLfloat, 16> matMV = mat4mult(matvT, matRx);
         glUniformMatrix4fv(glGetUniformLocation(myShader.id(), "MV"), 1, GL_FALSE, matMV.data());
