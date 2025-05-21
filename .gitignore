@@ -11,7 +11,6 @@
 *.slo
 *.lo
 *.o
-*.obj
 
 # Precompiled Headers
 *.gch
@@ -87,7 +86,6 @@ Release/
 *.idb
 *.pdb
 *.ilk
-*.obj
 *.lib
 *.exp
 *.iobj

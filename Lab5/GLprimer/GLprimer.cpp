@@ -177,7 +177,6 @@ int main(int, char*[]) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);                   // LINE
         glCullFace(GL_BACK);                                         // GL_FRONT
 
-            // --- Put this in the rendering loop
         keyRotator.poll();
         std::array<GLfloat, 16> matKeyRotator = mat4mult(mat4rotx(-keyRotator.theta()), mat4roty(-keyRotator.phi()));
 
@@ -188,19 +187,17 @@ int main(int, char*[]) {
         GLint locationT = glGetUniformLocation(myShader.id(), "T");
         glUniformMatrix4fv(locationT, 1, GL_FALSE, T.data());  // Copy the value
 
-        std::array<GLfloat, 16> matVrid = mat4rotx(-M_PI / 2);
-        std::array<GLfloat, 16> matMinska = mat4scale(0.2f);
-        std::array<GLfloat, 16> matSpin = mat4roty(time);
+        std::array<GLfloat, 16> spinMat = mat4roty(time);
         std::array<GLfloat, 16> matFlytt = mat4translate(0.5f, 0.0f, 0.0f);
         std::array<GLfloat, 16> matOrbit = mat4roty(time / 2);
-        std::array<GLfloat, 16> matCam = mat4rotx(M_PI / 8);  // --- Put this in the rendering loop
+        std::array<GLfloat, 16> matCam = mat4rotx(M_PI / 8);
 
         // std::array<GLfloat, 16> matRot =mat4mult(matKey, matMouse);
-        std::array<GLfloat, 16> matA = mat4mult(matMinska, matVrid);
-        std::array<GLfloat, 16> matB = mat4mult(matSpin, matA);
-        std::array<GLfloat, 16> matC = mat4mult(matFlytt, matB);
-        std::array<GLfloat, 16> matD = mat4mult(matOrbit, matC);
-        std::array<GLfloat, 16> matE = mat4mult(matCam, matD);      
+        std::array<GLfloat, 16> mat1 = mat4mult(mat4scale(0.2f), mat4rotx(-M_PI / 2));
+        std::array<GLfloat, 16> mat2 = mat4mult(spinMat, mat1);
+        std::array<GLfloat, 16> mat3 = mat4mult(matFlytt, mat2);
+        std::array<GLfloat, 16> mat4 = mat4mult(matOrbit, mat3);
+        std::array<GLfloat, 16> mat5 = mat4mult(matCam, mat4);      
 
         std::array<GLfloat, 16> matP = mat4perspective((M_PI / 4), 1.0f, 0.1f, 100.0f);
         GLint locationP = glGetUniformLocation(myShader.id(), "P");
@@ -209,7 +206,7 @@ int main(int, char*[]) {
 
         glUniform1i(locationTex, 0);
 
-        std::array<GLfloat, 16> matMV = mat4mult(mat4mult(mat4translate(0.0f, 0.0f, -2.5f), matE), mat4scale(3.0f));
+        std::array<GLfloat, 16> matMV = mat4mult(mat4mult(mat4translate(0.0f, 0.0f, -2.5f), mat5), mat4scale(3.0f));
 
         GLint locationMV = glGetUniformLocation(myShader.id(), "MV");
         glUniformMatrix4fv(locationMV, 1, GL_FALSE, matMV.data());  // Copy the value
