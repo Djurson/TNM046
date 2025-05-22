@@ -132,18 +132,18 @@ int main(int, char*[]) {
         float time = static_cast<float>(glfwGetTime());
         glUniform1f(locationTime, time);
 
-        // Update transformation matrices
-        std::array<GLfloat, 16> matT = mat4identity();
-        glUniformMatrix4fv(glGetUniformLocation(myShader.id(), "T"), 1, GL_FALSE, matT.data());
+        std::array<GLfloat, 16> identityMatrix = mat4identity();
+        glUniformMatrix4fv(glGetUniformLocation(myShader.id(), "T"), 1, GL_FALSE, identityMatrix.data());
 
-        // View translation
-        std::array<GLfloat, 16> matP = mat4perspective(M_PI / 3, 1.0f, 0.1f, 100.0f);
-        glUniformMatrix4fv(glGetUniformLocation(myShader.id(), "P"), 1, GL_FALSE, matP.data());
+        // View translation -> And shader value
+        std::array<GLfloat, 16> projectionMatrix = mat4perspective(M_PI / 3, 1.0f, 0.1f, 100.0f);
+        glUniformMatrix4fv(glGetUniformLocation(myShader.id(), "P"), 1, GL_FALSE, projectionMatrix.data());
 
-        std::array<GLfloat, 16> matRx = mat4mult(mat4rotx(time), mat4roty(time / 4));
-        std::array<GLfloat, 16> matvT = mat4translate(0.0f, 0.0f, -3.0f);
-        std::array<GLfloat, 16> matMV = mat4mult(matvT, matRx);
-        glUniformMatrix4fv(glGetUniformLocation(myShader.id(), "MV"), 1, GL_FALSE, matMV.data());
+        // Rotate object
+        std::array<GLfloat, 16> rotationMatrix = mat4mult(mat4rotx(time), mat4roty(time / 4));
+        std::array<GLfloat, 16> translationMatrix = mat4translate(0.0f, 0.0f, -3.0f);
+        std::array<GLfloat, 16> modelViewMatrix = mat4mult(translationMatrix, rotationMatrix);
+        glUniformMatrix4fv(glGetUniformLocation(myShader.id(), "MV"), 1, GL_FALSE, modelViewMatrix.data());
 
         // First pass: wireframe of front faces
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -153,10 +153,6 @@ int main(int, char*[]) {
         // Second pass: filled back faces
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glCullFace(GL_BACK);
-        box.render();
-
-        // --- Put this in the rendering loop
-        // Draw the triangle
         box.render();               
 
         // Swap buffers, display the image and prepare for next frame
