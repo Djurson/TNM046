@@ -136,11 +136,11 @@ int main(int, char*[]) {
         glUniformMatrix4fv(glGetUniformLocation(myShader.id(), "T"), 1, GL_FALSE, identityMatrix.data());
 
         // View translation -> And shader value
-        std::array<GLfloat, 16> projectionMatrix = mat4perspective(M_PI / 3, 1.0f, 0.1f, 100.0f);
+        std::array<GLfloat, 16> projectionMatrix = mat4perspective(M_PI / 4, 1.0f, 0.1f, 100.0f);
         glUniformMatrix4fv(glGetUniformLocation(myShader.id(), "P"), 1, GL_FALSE, projectionMatrix.data());
 
         // Rotate object
-        std::array<GLfloat, 16> rotationMatrix = mat4mult(mat4rotx(time), mat4roty(time / 4));
+        std::array<GLfloat, 16> rotationMatrix = mat4mult(mat4rotx(time / 2), mat4roty(time / 4));
         std::array<GLfloat, 16> translationMatrix = mat4translate(0.0f, 0.0f, -3.0f);
         std::array<GLfloat, 16> modelViewMatrix = mat4mult(translationMatrix, rotationMatrix);
         glUniformMatrix4fv(glGetUniformLocation(myShader.id(), "MV"), 1, GL_FALSE, modelViewMatrix.data());
