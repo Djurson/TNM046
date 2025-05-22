@@ -82,7 +82,6 @@ int main(int, char*[]) {
         0.0f, 0.0f, 1.0f,  // Blue
     };
 
-    Shader myShader;
     int width, height;
 
     // Initialise GLFW
@@ -148,6 +147,7 @@ int main(int, char*[]) {
 
     glfwSwapInterval(0);  // Do not wait for screen refresh between frames
 
+    Shader myShader;
     myShader.createShader("../shaders/vertex.glsl", "../shaders/fragment.glsl");
 
     // Main loop

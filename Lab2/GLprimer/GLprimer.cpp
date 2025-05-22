@@ -282,11 +282,12 @@ int main(int, char*[]) {
         // Creating the variables for the matrix multiplication
         std::array<GLfloat, 16> V = mat4rotx(time * (M_PI) / 550);
         std::array<GLfloat, 16> R1 = mat4roty((time * 0.5));
+        std::array<GLfloat, 16> R3 = mat4rotz((time * 0.5));
         std::array<GLfloat, 16> T = mat4translate(0, 0, 0.5);
         std::array<GLfloat, 16> R2 = mat4roty(time * (M_PI) / 50);
 
         // Sending the matrix mult to the shaders
-        std::array<float, 16> matTransformations = mat4mult(mat4mult(mat4mult(V, R1), T), R2);
+        std::array<float, 16> matTransformations = mat4mult(mat4mult(mat4mult(mat4mult(V, R1), R3), T), R2);
         std::array<GLfloat, 16> matRotY = mat4roty(time);
         GLint locationMatTRAN = glGetUniformLocation(myShader.id(), "MAT_TRAN");
         glUniformMatrix4fv(locationMatTRAN, 1, GL_FALSE,
