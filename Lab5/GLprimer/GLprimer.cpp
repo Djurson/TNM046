@@ -140,9 +140,11 @@ int main(int, char*[]) {
 
     TriangleSoup sphere;
     TriangleSoup TRex;
+    //TriangleSoup box;
 
+    //box.createBox(0.2, 0.2, 1);
     TRex.readOBJ("meshes/trex.obj");
-    sphere.createSphere(0.5f, 100);
+    sphere.createSphere(0.4f, 100);
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
@@ -151,8 +153,12 @@ int main(int, char*[]) {
 
     Texture earthTex;
     earthTex.createTexture("textures/earth.tga");
+
     Texture tRexTex;
     tRexTex.createTexture("textures/trex.tga");
+
+    //Texture boxTex;
+    //boxTex.createTexture("textures/pyramid.tga");
 
     KeyRotator keyRotator(window);
     MouseRotator mouseRotator(window);
@@ -168,64 +174,77 @@ int main(int, char*[]) {
         // Visa FPS
         util::displayFPS(window);
         /* ---- Rendering code should go here ---- */
-        // --- Add this to the rendering loop, right before the call to glBindVertexArray()
         glUseProgram(myShader.id());
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glCullFace(GL_BACK);
 
         float time = static_cast<float>(glfwGetTime());
-
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);  // was 3
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);                   // LINE
-        glCullFace(GL_BACK);                                         // GL_FRONT
-
         keyRotator.poll();
-        std::array<GLfloat, 16> matKeyRotator = mat4mult(mat4rotx(-keyRotator.theta()), mat4roty(-keyRotator.phi()));
-
         mouseRotator.poll();
-        std::array<GLfloat, 16> matMouseRotator = mat4mult(mat4rotx(mouseRotator.theta()), mat4roty(-mouseRotator.phi()));
 
-        std::array<GLfloat, 16> T = matMouseRotator;
         GLint locationT = glGetUniformLocation(myShader.id(), "T");
-        glUniformMatrix4fv(locationT, 1, GL_FALSE, T.data());  // Copy the value
-
-        std::array<GLfloat, 16> spinMat = mat4roty(time);
-        std::array<GLfloat, 16> matFlytt = mat4translate(0.5f, 0.0f, 0.0f);
-        std::array<GLfloat, 16> matOrbit = mat4roty(time / 2);
-        std::array<GLfloat, 16> matCam = mat4rotx(M_PI / 8);
-
-        // std::array<GLfloat, 16> matRot =mat4mult(matKey, matMouse);
-        std::array<GLfloat, 16> mat1 = mat4mult(mat4scale(0.2f), mat4rotx(-M_PI / 2));
-        std::array<GLfloat, 16> mat2 = mat4mult(spinMat, mat1);
-        std::array<GLfloat, 16> mat3 = mat4mult(matFlytt, mat2);
-        std::array<GLfloat, 16> mat4 = mat4mult(matOrbit, mat3);
-        std::array<GLfloat, 16> mat5 = mat4mult(matCam, mat4);      
-
-        std::array<GLfloat, 16> matP = mat4perspective((M_PI / 4), 1.0f, 0.1f, 100.0f);
         GLint locationP = glGetUniformLocation(myShader.id(), "P");
+        GLint locationMV = glGetUniformLocation(myShader.id(), "MV");
 
-        glUniformMatrix4fv(locationP, 1, GL_FALSE, matP.data());
+        std::array<GLfloat, 16> keyRotationMatrix =
+            mat4mult(mat4rotx(-keyRotator.theta()), mat4roty(-keyRotator.phi()));
+        std::array<GLfloat, 16> mouseRotationMatrix =
+            mat4mult(mat4rotx(mouseRotator.theta()), mat4roty(-mouseRotator.phi()));
 
+        // Depth test
+        //std::array<GLfloat, 16> projectionMatrix = mat4perspective(M_PI / 10, 1.0f, 0.1f, 100.0f);
+
+        std::array<GLfloat, 16> projectionMatrix = mat4perspective(M_PI / 6, 1.0f, 0.1f, 100.0f);
+
+        glUniformMatrix4fv(locationT, 1, GL_FALSE, mouseRotationMatrix.data());
+        glUniformMatrix4fv(locationP, 1, GL_FALSE, projectionMatrix.data());
         glUniform1i(locationTex, 0);
 
-        std::array<GLfloat, 16> matMV = mat4mult(mat4mult(mat4translate(0.0f, 0.0f, -2.5f), mat5), mat4scale(3.0f));
+        std::array<GLfloat, 16> boxModelView =
+            mat4mult(mat4translate(0.0f, 0.0f, -2.5f), mat4mult(mat4scale(0.5f), mat4roty(time)));
 
-        GLint locationMV = glGetUniformLocation(myShader.id(), "MV");
-        glUniformMatrix4fv(locationMV, 1, GL_FALSE, matMV.data());  // Copy the value
+        #pragma region Box and depth test
+        // Cube test
+        // glUniformMatrix4fv(locationMV, 1, GL_FALSE, boxModelView.data());
+        // glBindTexture(GL_TEXTURE_2D, boxTex.id());
+        // box.render();
 
+        // Depth test
+        //std::array<GLfloat, 16> earthTransform = mat4mult(mat4scale(0.2f), mat4rotx(-M_PI / 2));
+        //earthTransform = mat4mult(mat4translate(0.0f, 0.0f, 0.0f), earthTransform);
+        #pragma endregion
+
+        // Sphere rendering
+        std::array<GLfloat, 16> earthTransform = mat4mult(mat4scale(0.2f), mat4rotx(-M_PI / 2));
+        earthTransform = mat4mult(mat4roty(time), earthTransform);
+        earthTransform =
+            mat4mult(mat4translate(0.5f, 0.0f, 0.0f), earthTransform);
+        earthTransform = mat4mult(mat4roty(time / 2), earthTransform);
+        earthTransform = mat4mult(mat4rotx(M_PI / 8), earthTransform);
+
+        std::array<GLfloat, 16> earthModelView =
+        mat4mult(mat4mult(mat4translate(0.0f, 0.0f, -2.5f), earthTransform), mat4scale(3.0f));
+
+        glUniformMatrix4fv(locationMV, 1, GL_FALSE, earthModelView.data());
         glBindTexture(GL_TEXTURE_2D, earthTex.id());
         sphere.render();
 
-        // dino below
+        // Rendering t-rex
+        std::array<GLfloat, 16> dinoModelView = mat4mult(
+            mat4mult(mat4translate(0.0f, 0.0f, -2.5f), keyRotationMatrix), mat4scale(0.6f));
 
-        matMV = mat4mult(mat4mult(mat4translate(0.0f, 0.0f, -2.5f), matKeyRotator), mat4scale(0.6f));
+        // Wirefram tRex
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        //glUniformMatrix4fv(locationMV, 1, GL_FALSE, dinoModelView.data());
+        //glBindTexture(GL_TEXTURE_2D, tRexTex.id());
+        //TRex.render();
 
-        glUniformMatrix4fv(locationMV, 1, GL_FALSE, matMV.data());  // Copy the value
-
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glUniformMatrix4fv(locationMV, 1, GL_FALSE, dinoModelView.data());
         glBindTexture(GL_TEXTURE_2D, tRexTex.id());
         TRex.render();
 
-        // restore previous state (no texture, no shader)
         glBindTexture(GL_TEXTURE_2D, 0);
-
         glUseProgram(0);
 
         // Swap buffers, display the image and prepare for next frame
