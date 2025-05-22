@@ -1,4 +1,4 @@
-/*
+ /*
  * A C++ framework for OpenGL programming in TNM046 for MT1
  *
  * This is a small, limited framework, designed to be easy to use for students in an introductory
@@ -38,7 +38,8 @@
 #include "Shader.hpp"
 #include "TriangleSoup.hpp"
 
-
+GLuint createIndexBuffer(const std::vector<unsigned int>& indices);
+GLuint createVertexBuffer(int location, int dimensions, const std::vector<float>& vertices);
 std::array<float, 16> mat4mult(const std::array<float, 16>& m2, const std::array<float, 16>& m1);
 std::array<float, 16> mat4rotx(float angle);
 std::array<float, 16> mat4roty(float angle);
@@ -52,6 +53,86 @@ void mat4print(const std::array<float, 16>& m);
  */
 int main(int, char*[]) {
 
+    #pragma region Kub definition
+    // Färg array
+    const std::vector<GLfloat> colorArrayData = {
+        0.0f, 1.0f, 0.0f,  // Green 0
+        0.5f, 0.0f, 1.0f,  // Purple 1
+        1.0f, 0.0f, 0.0f,  // Red 2
+        0.0f, 1.0f, 0.0f,  // Green 3
+        0.5f, 0.0f, 1.0f,  // Purple 4
+        1.0f, 0.5f, 0.0f,  // Orange 5
+        0.0f, 1.0f, 0.0f,  // Green 6
+        1.0f, 1.0f, 0.0f,  // Yellow 7
+        1.0f, 0.5f, 0.0f,  // Orange 8
+        0.0f, 1.0f, 0.0f,  // Green 9
+        1.0f, 1.0f, 0.0f,  // Yellow 10
+        1.0f, 0.0f, 0.0f,  // Red 11
+        0.0f, 0.0f, 1.0f,  // Blue 12
+        0.5f, 0.0f, 1.0f,  // Purple 13
+        1.0f, 0.0f, 0.0f,  // Red 14
+        0.0f, 0.0f, 1.0f,  // Blue 15
+        0.5f, 0.0f, 1.0f,  // Purple 16
+        1.0f, 0.5f, 0.0f,  // Orange 17
+        0.0f, 0.0f, 1.0f,  // Blue 18
+        1.0f, 1.0f, 0.0f,  // Yellow 19
+        1.0f, 0.5f, 0.0f,  // Orange 20
+        0.0f, 0.0f, 1.0f,  // Blue 21
+        1.0f, 1.0f, 0.0f,  // Yellow 22
+        1.0f, 0.0f, 0.0f,  // Red 23
+    };
+
+    // Kub vertex punkter
+    const std::vector<GLfloat> vertexArrayData = {
+        -1.0f, -1.0f, -1.0f,  // Vertex 0
+        -1.0f, -1.0f, -1.0f,  // Vertex 1
+        -1.0f, -1.0f, -1.0f,  // Vertex 2
+
+        -1.0f, -1.0f, 1.0f,  // Vertex 3
+        -1.0f, -1.0f, 1.0f,  // Vertex 4
+        -1.0f, -1.0f, 1.0f,  // Vertex 5
+
+        -1.0f, 1.0f,  1.0f,  // Vertex 6
+        -1.0f, 1.0f,  1.0f,  // Vertex 7
+        -1.0f, 1.0f,  1.0f,  // Vertex 8
+
+        -1.0f, 1.0f,  -1.0f,  // Vertex 9
+        -1.0f, 1.0f,  -1.0f,  // Vertex 10
+        -1.0f, 1.0f,  -1.0f,  // Vertex 11
+
+        1.0f,  -1.0f, -1.0f,  // Vertex 12
+        1.0f,  -1.0f, -1.0f,  // Vertex 13
+        1.0f,  -1.0f, -1.0f,  // Vertex 14
+
+        1.0f,  -1.0f, 1.0f,  // Vertex 15
+        1.0f,  -1.0f, 1.0f,  // Vertex 16
+        1.0f,  -1.0f, 1.0f,  // Vertex 17
+
+        1.0f,  1.0f,  1.0f,  // Vertex 18
+        1.0f,  1.0f,  1.0f,  // Vertex 19
+        1.0f,  1.0f,  1.0f,  // vertex 20
+
+        1.0f,  1.0f,  -1.0f,  // Vertex 21
+        1.0f,  1.0f,  -1.0f,  // Vertex 22
+        1.0f,  1.0f,  -1.0f,  // Vertex 23
+    };
+
+    // triangel tabell för kub
+    const std::vector<GLuint> indexArrayData = {
+        0,  3,  9,   // t0
+        3,  6,  9,   // t1
+        14, 2,  23,  // t2
+        2,  11, 23,  // t3
+        15, 12, 18,  // t4
+        12, 21, 18,  // t5
+        5,  17, 8,   // t6
+        17, 20, 8,   // t7
+        10, 7,  22,  // t8
+        7,  19, 22,  // t9
+        4,  1,  16,  // t10
+        1,  13, 16   // t11
+    };
+#pragma endregion
 
     int width, height;
 
@@ -111,6 +192,10 @@ int main(int, char*[]) {
 
     sphere.createSphere(1.0f, 20);
 
+    // Hämta uniform-platser (bör optimalt göras vid initialisering)
+    GLint locationMatTRAN = glGetUniformLocation(myShader.id(), "MAT_TRAN");
+    GLint locationT = glGetUniformLocation(myShader.id(), "T");
+
     glEnable(GL_CULL_FACE);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -127,27 +212,18 @@ int main(int, char*[]) {
         /* ---- Rendering code should go here ---- */
         glUseProgram(myShader.id());
 
-        float time = static_cast<float>(glfwGetTime());  // Number of seconds since the program was started
-        glUseProgram(myShader.id());            // Activate the shader to set its variables
-        glUniform1f(locationTime, time);        // Copy the value to the shader program
+        float time = static_cast<float>(glfwGetTime());
+        glUniform1f(locationTime, time);
 
-        // Creating the variables for the matrix multiplication
-        std::array<GLfloat, 16> R1 = mat4roty((time * 3));
+        // Rotation matrix
+        std::array<GLfloat, 16> rotationMatrix = mat4roty(time * 3);
 
-        // Sending the matrix mult to the shaders
-        std::array<float, 16> matTransformation = R1;
-        std::array<GLfloat, 16> matRotY = mat4roty(time);
-        GLint locationMatTRAN = glGetUniformLocation(myShader.id(), "MAT_TRAN");
-        glUniformMatrix4fv(locationMatTRAN, 1, GL_FALSE,
-                           matTransformation.data());  // Copy the value
+        // Skicka matriser till shadern
+        glUniformMatrix4fv(locationMatTRAN, 1, GL_FALSE, rotationMatrix.data());
+        glUniformMatrix4fv(locationT, 1, GL_FALSE, rotationMatrix.data());
 
-        std::array<GLfloat, 16> matT = matTransformation;
-        GLint locationT = glGetUniformLocation(myShader.id(), "T");
-        glUseProgram(myShader.id());  // Activate the shader to set its variables
-        glUniformMatrix4fv(locationT, 1, GL_FALSE, matT.data());  // Copy the value
-
+        //Rendera sphär
         sphere.render();
-
 
         // Swap buffers, display the image and prepare for next frame
         glfwSwapBuffers(window);

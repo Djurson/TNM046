@@ -272,7 +272,7 @@ int main(int, char*[]) {
         // When the last argument of glDrawElements is nullptr, it means
         // "use the previously bound index buffer". (This is not obvious.)
         // The index buffer is part of the VAO state and is bound with it.
-        glDrawElements(GL_TRIANGLES, 32, GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
 
         float time =
             static_cast<float>(glfwGetTime());  // Number of seconds since the program was started
